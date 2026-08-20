@@ -3,7 +3,7 @@
 import pandas as pd
 import pytest
 
-import team02_streamlit_app as app
+import team02_frontend_core as app
 
 
 def valid_feature_row() -> dict:
@@ -48,6 +48,22 @@ def test_normalise_payload_never_includes_target():
     payload = app.normalise_payload(row)
 
     assert app.TARGET_COLUMN not in payload
+
+
+def test_multiple_original_rows_never_leak_target_into_prediction_payloads():
+    rows = pd.DataFrame([
+        {app.TARGET_COLUMN: 0, **valid_feature_row()},
+        {app.TARGET_COLUMN: 1, **valid_feature_row()},
+        {app.TARGET_COLUMN: 2, **valid_feature_row()},
+    ])
+
+    checked, errors = app.validate_input_dataframe(rows)
+    payloads = [app.normalise_payload(row) for _, row in checked.iterrows()]
+
+    assert errors == []
+    assert len(payloads) == 3
+    assert all(list(payload) == app.FEATURE_COLUMNS for payload in payloads)
+    assert all(app.TARGET_COLUMN not in payload for payload in payloads)
 
 
 def test_normalise_payload_uses_float_for_bmi_and_int_for_coded_fields():
