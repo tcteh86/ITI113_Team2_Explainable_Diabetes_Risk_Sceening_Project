@@ -1,6 +1,6 @@
-streamlit>=1.40
-fastapi>=0.115
-uvicorn[standard]>=0.30
-boto3>=1.35
-requests>=2.32
-pydantic>=2.8
+# Team02 Streamlit frontend development/test environment
+
+streamlit>=1.40,<2.0
+pandas>=2.2,<3.0
+requests>=2.32,<3.0
+pytest>=8.3,<9.0
