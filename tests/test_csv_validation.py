@@ -1,13 +1,9 @@
 """Tests for Team02 CSV parsing and validation.
 
-These tests target the current public helper functions in
-team02_streamlit_app.py.
+These tests target the public helpers in team02_frontend_core.py.
 
-The module is imported normally. In the project development environment,
-install requirements-streamlit.txt first so Streamlit is available.
-
-If Codex later extracts pure helpers into a separate core module, update only
-the import statement while preserving the same behavioural tests.
+The pure core module is imported directly, so importing these tests does not
+render Streamlit or require a live application session.
 """
 
 from io import StringIO
@@ -15,7 +11,15 @@ from io import StringIO
 import pandas as pd
 import pytest
 
-import team02_streamlit_app as app
+import team02_frontend_core as app
+
+
+EXPECTED_FEATURE_COLUMNS = [
+    "HighBP", "HighChol", "CholCheck", "BMI", "Smoker", "Stroke",
+    "HeartDiseaseorAttack", "PhysActivity", "Fruits", "Veggies",
+    "HvyAlcoholConsump", "AnyHealthcare", "NoDocbcCost", "GenHlth",
+    "MentHlth", "PhysHlth", "DiffWalk", "Sex", "Age", "Education", "Income",
+]
 
 
 def valid_feature_row() -> dict:
@@ -45,6 +49,7 @@ def valid_feature_row() -> dict:
 
 
 def test_feature_contract_has_21_unique_columns():
+    assert app.FEATURE_COLUMNS == EXPECTED_FEATURE_COLUMNS
     assert len(app.FEATURE_COLUMNS) == 21
     assert len(set(app.FEATURE_COLUMNS)) == 21
     assert app.TARGET_COLUMN == "Diabetes_012"
@@ -72,13 +77,13 @@ def test_validate_accepts_original_22_column_dataset_format():
     assert checked.loc[0, app.TARGET_COLUMN] == 2
 
 
-def test_validate_drops_unexpected_extra_columns():
+def test_validate_reports_and_drops_unexpected_extra_columns():
     row = {"Diabetes_012": 0, **valid_feature_row(), "UnexpectedColumn": 999}
     df = pd.DataFrame([row])
 
     checked, errors = app.validate_input_dataframe(df)
 
-    assert errors == []
+    assert any("Unexpected columns" in error for error in errors)
     assert "UnexpectedColumn" not in checked.columns
     assert list(checked.columns) == [app.TARGET_COLUMN] + app.FEATURE_COLUMNS
 
@@ -159,6 +164,22 @@ def test_validate_rejects_blank_or_non_numeric_value():
     assert any("Blank or non-numeric" in e and "BMI" in e for e in errors)
 
 
+@pytest.mark.parametrize(
+    "column",
+    ["GenHlth", "MentHlth", "PhysHlth", "Age", "Education", "Income"],
+)
+def test_validate_rejects_fractional_coded_values(column):
+    row = valid_feature_row()
+    row[column] = float(row[column]) + 0.5
+
+    _, errors = app.validate_input_dataframe(pd.DataFrame([row]))
+
+    assert any(
+        column in error and "whole-number coded values" in error
+        for error in errors
+    )
+
+
 @pytest.mark.parametrize("target", [-1, 3, 99])
 def test_validate_rejects_invalid_diabetes_012_label(target):
     row = {"Diabetes_012": target, **valid_feature_row()}
@@ -181,6 +202,21 @@ def test_parse_pasted_csv_accepts_header_plus_rows():
     assert list(parsed.columns) == app.FEATURE_COLUMNS
     assert len(parsed) == 2
     assert parsed.iloc[1]["BMI"] == 35
+
+
+def test_parse_pasted_csv_normalises_whitespace_and_bom_in_header():
+    row = valid_feature_row()
+    header = ",".join(
+        ("\ufeff " if index == 0 else " ") + column + " "
+        for index, column in enumerate(app.FEATURE_COLUMNS)
+    )
+    values = ",".join(str(row[column]) for column in app.FEATURE_COLUMNS)
+
+    parsed = app.parse_pasted_csv(header + "\n" + values)
+    checked, errors = app.validate_input_dataframe(parsed)
+
+    assert errors == []
+    assert list(checked.columns) == app.FEATURE_COLUMNS
 
 
 def test_parse_pasted_csv_accepts_headerless_21_feature_row():
@@ -214,3 +250,67 @@ def test_parse_pasted_csv_rejects_empty_text():
 def test_parse_pasted_csv_rejects_wrong_number_of_columns():
     with pytest.raises(ValueError, match="Expected 21 feature columns or 22 columns"):
         app.parse_pasted_csv("1,2,3,4,5")
+
+
+def test_validate_rejects_header_only_csv_with_no_rows():
+    empty = pd.DataFrame(columns=app.FEATURE_COLUMNS)
+
+    _, errors = app.validate_input_dataframe(empty)
+
+    assert errors == ["No data rows found."]
+
+
+def test_parse_uploaded_csv_accepts_one_model_only_row():
+    csv_file = StringIO(pd.DataFrame([valid_feature_row()]).to_csv(index=False))
+
+    parsed = app.parse_uploaded_csv(csv_file)
+    checked, errors = app.validate_input_dataframe(parsed)
+
+    assert errors == []
+    assert len(checked) == 1
+    assert list(checked.columns) == app.FEATURE_COLUMNS
+
+
+def test_parse_uploaded_csv_accepts_multiple_original_brfss_rows():
+    rows = [
+        {app.TARGET_COLUMN: 0, **valid_feature_row()},
+        {app.TARGET_COLUMN: 2, **valid_feature_row()},
+    ]
+    csv_file = StringIO(pd.DataFrame(rows).to_csv(index=False))
+
+    parsed = app.parse_uploaded_csv(csv_file)
+    checked, errors = app.validate_input_dataframe(parsed)
+
+    assert errors == []
+    assert len(checked) == 2
+    assert list(checked.columns) == [app.TARGET_COLUMN] + app.FEATURE_COLUMNS
+    assert checked[app.TARGET_COLUMN].tolist() == [0, 2]
+
+
+def test_parse_pasted_csv_accepts_multiple_headerless_original_rows():
+    row = valid_feature_row()
+    first = [0] + [row[column] for column in app.FEATURE_COLUMNS]
+    second = [2] + [row[column] for column in app.FEATURE_COLUMNS]
+    pasted = "\n".join(
+        ",".join(str(value) for value in values)
+        for values in [first, second]
+    )
+
+    parsed = app.parse_pasted_csv(pasted)
+    checked, errors = app.validate_input_dataframe(parsed)
+
+    assert errors == []
+    assert len(checked) == 2
+    assert checked[app.TARGET_COLUMN].tolist() == [0, 2]
+
+
+@pytest.mark.parametrize(
+    "parser,value",
+    [
+        (app.parse_pasted_csv, 'HighBP,"unterminated'),
+        (app.parse_uploaded_csv, StringIO('HighBP,"unterminated')),
+    ],
+)
+def test_csv_parsers_reject_malformed_csv(parser, value):
+    with pytest.raises(ValueError, match="Could not read"):
+        parser(value)
