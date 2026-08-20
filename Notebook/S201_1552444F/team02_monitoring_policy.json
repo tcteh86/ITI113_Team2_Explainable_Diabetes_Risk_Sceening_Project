@@ -1,0 +1,64 @@
+{
+  "config_version": "2026-08-22-cross-model-champion-v5",
+  "reference_data_version": "brfss2015-diabetes-binary-6244bec277fe",
+  "reference_profile_sha256": "6244bec277fe3cefce56d46c583a4c5eb73f179ef64c8a1b18557fd0200105c5",
+  "data_drift": {
+    "metric": "PSI",
+    "warning_threshold": 0.1,
+    "alert_threshold": 0.25,
+    "scope": [
+      "HighBP",
+      "HighChol",
+      "CholCheck",
+      "BMI",
+      "Smoker",
+      "Stroke",
+      "HeartDiseaseorAttack",
+      "PhysActivity",
+      "Fruits",
+      "Veggies",
+      "HvyAlcoholConsump",
+      "AnyHealthcare",
+      "NoDocbcCost",
+      "GenHlth",
+      "MentHlth",
+      "PhysHlth",
+      "DiffWalk",
+      "Sex",
+      "Age",
+      "Education",
+      "Income"
+    ]
+  },
+  "model_performance": {
+    "requires_labels": true,
+    "baseline": {
+      "pr_auc": 0.464397478,
+      "roc_auc": 0.824820173,
+      "recall": 0.621388368,
+      "f1": 0.492441889
+    },
+    "alerts": {
+      "roc_auc_below": 0.75,
+      "pr_auc_absolute_drop": 0.05,
+      "recall_absolute_drop": 0.05
+    }
+  },
+  "operational": {
+    "sources": [
+      "SageMaker endpoint status",
+      "CloudWatch endpoint logs",
+      "pipeline execution status"
+    ],
+    "review": "each demo/run; scheduled production review recommended"
+  },
+  "model_configuration_drift": {
+    "expected_model_run_id": "057bb58d81564c0db9a628b224eab8f9",
+    "expected_config_version": "2026-08-22-cross-model-champion-v5",
+    "expected_data_version": "brfss2015-diabetes-binary-6244bec277fe",
+    "expected_decision_threshold": 0.5,
+    "detective_control": "Section 16.1 endpoint metadata assertions",
+    "action_on_mismatch": "block smoke test; investigate registry/package/endpoint lineage before reuse"
+  },
+  "human_action": "Alert triggers investigation and human review; it does not automatically retrain, approve or deploy a replacement model."
+}

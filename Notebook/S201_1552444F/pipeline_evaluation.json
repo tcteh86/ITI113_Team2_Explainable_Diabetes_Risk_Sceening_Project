@@ -1,0 +1,107 @@
+{
+  "model_type": "XGBoost",
+  "team_id": "team02",
+  "config_version": "2026-08-22-cross-model-champion-v5",
+  "model_params": {
+    "n_estimators": 450,
+    "max_depth": 4,
+    "learning_rate": 0.03,
+    "min_child_weight": 5.0,
+    "subsample": 0.8,
+    "colsample_bytree": 0.8,
+    "reg_alpha": 0.1,
+    "reg_lambda": 10.0,
+    "gamma": 0.05,
+    "scale_pos_weight": 3.0,
+    "tree_method": "hist",
+    "random_state": 42,
+    "objective": "binary:logistic",
+    "eval_metric": "aucpr",
+    "n_jobs": -1
+  },
+  "decision_threshold": 0.5,
+  "data_version": "brfss2015-diabetes-binary-6244bec277fe",
+  "dataset_sha256": "6244bec277fe3cefce56d46c583a4c5eb73f179ef64c8a1b18557fd0200105c5",
+  "approved_mlflow_run_id": "057bb58d81564c0db9a628b224eab8f9",
+  "source_candidate_run_id": "02807641d2814f48a084c7c451414917",
+  "source_refinement_run_id": "e89987fd9aec4a11a1108c8afaf6561b",
+  "source_threshold_run_id": "a1a47bcc23d844539d92f3a3ed8fec1e",
+  "preprocessing_config": {
+    "config_version": "brfss-binary-v1-stratified-80-20-rs42",
+    "source_target_column": "Diabetes_binary",
+    "pipeline_target_column": "target",
+    "feature_columns": [
+      "HighBP",
+      "HighChol",
+      "CholCheck",
+      "BMI",
+      "Smoker",
+      "Stroke",
+      "HeartDiseaseorAttack",
+      "PhysActivity",
+      "Fruits",
+      "Veggies",
+      "HvyAlcoholConsump",
+      "AnyHealthcare",
+      "NoDocbcCost",
+      "GenHlth",
+      "MentHlth",
+      "PhysHlth",
+      "DiffWalk",
+      "Sex",
+      "Age",
+      "Education",
+      "Income"
+    ],
+    "feature_count": 21,
+    "data_profile": "full",
+    "profile_fraction": 1.0,
+    "split_strategy": "stratified_train_test_split",
+    "test_size": 0.2,
+    "random_state": 42,
+    "modelling_validation": "Stratified 5-Fold CV on training only",
+    "resampling": "none",
+    "xgboost_class_imbalance_control": "scale_pos_weight"
+  },
+  "experiment_xgboost_version": null,
+  "pipeline_xgboost_version": "2.1.4",
+  "test": {
+    "accuracy": 0.7976387574897509,
+    "precision": 0.4075520833333333,
+    "recall": 0.6263914946841777,
+    "f1": 0.49381255238376964,
+    "f2": 0.5656456130839432,
+    "balanced_accuracy": 0.7280316192215488,
+    "average_precision": 0.4651249892489368,
+    "roc_auc": 0.825418954158766,
+    "brier_score": 0.1338992231696608,
+    "decision_threshold": 0.5,
+    "true_negative": 35461,
+    "false_positive": 7280,
+    "false_negative": 2987,
+    "true_positive": 5008
+  },
+  "fairness_gap_summary": {
+    "Age": {
+      "recall_max_min_gap": 0.7359891964888589,
+      "false_positive_rate_max_min_gap": 0.3345493388361497,
+      "groups_evaluated": 13
+    },
+    "Education": {
+      "recall_max_min_gap": 0.39764130354216254,
+      "false_positive_rate_max_min_gap": 0.382983700199489,
+      "groups_evaluated": 6
+    },
+    "Income": {
+      "recall_max_min_gap": 0.39517098068612755,
+      "false_positive_rate_max_min_gap": 0.35088038600325766,
+      "groups_evaluated": 8
+    },
+    "Sex": {
+      "recall_max_min_gap": 0.007365973071601473,
+      "false_positive_rate_max_min_gap": 0.04175309991526832,
+      "groups_evaluated": 2
+    }
+  },
+  "subgroup_metrics_file": "subgroup_metrics.csv"
+}

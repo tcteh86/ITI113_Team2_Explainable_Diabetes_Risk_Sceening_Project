@@ -1,0 +1,26 @@
+{
+    "champion_model": "XGBoost",
+    "rationale": "PR-AUC is the predefined primary metric. On the exact same held-out rows, XGBoost PR-AUC=0.464397 versus LR=0.434387 (delta=+0.030011). Performance recommendation=XGBoost. Recall trade-off: XGBoost=0.621388, LR=0.655034; FNR: XGBoost=0.378612, LR=0.344966. Calibration trade-off (Brier, lower is better): XGBoost=0.133926, LR=0.108371. Calibration/fairness are documented governance observations rather than new post-hoc hard blockers. Final champion=XGBoost.",
+    "xgboost_run_id": "dca27f6422344d249069ab863b1541fa",
+    "xgboost_model_uri": "runs:/dca27f6422344d249069ab863b1541fa/model",
+    "xgboost_quality_gate_passed": true,
+    "logistic_regression_run_id": "5915855b52af4f8e97be9637dc6e2e86",
+    "registered_model_name": "iti113-team02-diabetes",
+    "registered_model_version": "1",
+    "decision_timestamp_utc": "2026-08-21T07:33:14.453246+00:00",
+    "primary_metric": "PR-AUC",
+    "xgboost_pr_auc": 0.46439747791619373,
+    "logistic_regression_pr_auc": 0.4343866677706578,
+    "pr_auc_delta_xgb_minus_lr": 0.030010810145535916,
+    "lr_re_evaluated_on_xgb_test_rows": true,
+    "test_split_sha256": "12de3cf4074e8656a059c938acbe27143794910116dda3dc217a101698a368c1",
+    "xgboost_brier": 0.13392609827383717,
+    "logistic_regression_brier": 0.10837053521659269,
+    "brier_delta_xgb_minus_lr": 0.025555563057244476,
+    "governance_observations": {
+        "Calibration not materially worse than LR": false,
+        "Fairness gaps not materially worse than LR": true,
+        "XGBoost recall >= LR": false,
+        "XGBoost FNR <= LR": false
+    }
+}

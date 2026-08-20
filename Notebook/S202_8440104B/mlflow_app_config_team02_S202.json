@@ -1,0 +1,36 @@
+{
+  "REGION": "ap-southeast-1",
+  "MLFLOW_APP_ARN": "arn:aws:sagemaker:ap-southeast-1:044528205969:mlflow-app/app-YHNC33FF6GPZ",
+  "EXPERIMENT_NAME": "ITI113/team02/diabetes-risk",
+  "TEAM_ID": "team02",
+  "STUDENT_ID": "S202",
+  "PROJECT_NAME": "diabetes-risk",
+  "ARTIFACT_STORE_URI": "s3://nyp-26s1-iti113/iti113/team02/mlflow-app-artifacts/",
+  "MLFLOW_APP_NAME": "iti113-26s1-team02-mlflow-app",
+  "MLFLOW_APP_TAGS": [
+    {
+      "Key": "Course",
+      "Value": "ITI113"
+    },
+    {
+      "Key": "Semester",
+      "Value": "26S1"
+    },
+    {
+      "Key": "TeamId",
+      "Value": "team02"
+    },
+    {
+      "Key": "StudentId",
+      "Value": "S202"
+    },
+    {
+      "Key": "ProjectName",
+      "Value": "diabetes-risk"
+    },
+    {
+      "Key": "CreatedByNotebook",
+      "Value": "01A_setup_sagemaker_mlflow_app"
+    }
+  ]
+}

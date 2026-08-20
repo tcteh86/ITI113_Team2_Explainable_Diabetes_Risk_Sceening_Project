@@ -1,0 +1,115 @@
+{
+  "team_id": "team02",
+  "project_name": "diabetes-risk",
+  "config_version": "2026-08-22-cross-model-champion-v5",
+  "selected_model": "XGBoost",
+  "model": {
+    "params": {
+      "n_estimators": 450,
+      "max_depth": 4,
+      "learning_rate": 0.03,
+      "min_child_weight": 5.0,
+      "subsample": 0.8,
+      "colsample_bytree": 0.8,
+      "reg_alpha": 0.1,
+      "reg_lambda": 10.0,
+      "gamma": 0.05,
+      "scale_pos_weight": 3.0,
+      "objective": "binary:logistic",
+      "eval_metric": "aucpr",
+      "tree_method": "hist",
+      "n_jobs": -1,
+      "random_state": 42
+    },
+    "decision_threshold": 0.5,
+    "candidate_run_id": "02807641d2814f48a084c7c451414917",
+    "refinement_run_id": "e89987fd9aec4a11a1108c8afaf6561b",
+    "threshold_tuning_run_id": "a1a47bcc23d844539d92f3a3ed8fec1e",
+    "final_run_id": "057bb58d81564c0db9a628b224eab8f9",
+    "comparison_lr_final_run_id": "82bc9a4720e04a50ae942128305eb90d",
+    "comparison_lr": {
+      "candidate_run_id": "74e8884c230349f3ad29021db15f54a2",
+      "threshold_tuning_run_id": "4d0a1f65fd754905bb85a4459886cb10",
+      "final_run_id": "82bc9a4720e04a50ae942128305eb90d",
+      "decision_threshold": 0.59,
+      "params": {
+        "C": 100.0,
+        "class_weight": "balanced",
+        "solver": "lbfgs",
+        "penalty": "l2",
+        "max_iter": 3000,
+        "random_state": 42
+      }
+    }
+  },
+  "data": {
+    "data_version": "brfss2015-diabetes-binary-6244bec277fe",
+    "s3_uri": "s3://nyp-26s1-iti113/iti113/team02/data/diabetes/cleaned/diabetes_binary_cleaned_dataset.csv",
+    "profile_rows": 253680,
+    "profile_sha256": "6244bec277fe3cefce56d46c583a4c5eb73f179ef64c8a1b18557fd0200105c5",
+    "train_split_sha256": "93531a7b366471a63d29fd970abad6c5d04a2f933f9ffb2aa38dce1c7b286d65",
+    "test_split_sha256": "12de3cf4074e8656a059c938acbe27143794910116dda3dc217a101698a368c1",
+    "signature_type": "pandas_hash_pandas_object_sha256"
+  },
+  "preprocessing": {
+    "config_version": "brfss-binary-v1-stratified-80-20-rs42",
+    "source_target_column": "Diabetes_binary",
+    "pipeline_target_column": "target",
+    "feature_columns": [
+      "HighBP",
+      "HighChol",
+      "CholCheck",
+      "BMI",
+      "Smoker",
+      "Stroke",
+      "HeartDiseaseorAttack",
+      "PhysActivity",
+      "Fruits",
+      "Veggies",
+      "HvyAlcoholConsump",
+      "AnyHealthcare",
+      "NoDocbcCost",
+      "GenHlth",
+      "MentHlth",
+      "PhysHlth",
+      "DiffWalk",
+      "Sex",
+      "Age",
+      "Education",
+      "Income"
+    ],
+    "feature_count": 21,
+    "data_profile": "full",
+    "profile_fraction": 1.0,
+    "split_strategy": "stratified_train_test_split",
+    "test_size": 0.2,
+    "random_state": 42,
+    "modelling_validation": "Stratified 5-Fold CV on training only",
+    "resampling": "none",
+    "xgboost_class_imbalance_control": "scale_pos_weight"
+  },
+  "source_evidence_exports": {
+    "XGBoost": {
+      "logical_filename": "S202_8440104B_XGBoost_Experiments_Evidence_Runs.csv",
+      "sha256": "d95703aa1e4b91197ca08fa545db7a7f10adb1e37a233938f19c50f3f6617228",
+      "final_run_id": "057bb58d81564c0db9a628b224eab8f9",
+      "candidate_run_id": "02807641d2814f48a084c7c451414917",
+      "refinement_run_id": "e89987fd9aec4a11a1108c8afaf6561b",
+      "threshold_run_id": "a1a47bcc23d844539d92f3a3ed8fec1e"
+    },
+    "LogisticRegression": {
+      "logical_filename": "S203_2730358J_Logistic_Regression_Experiment_Evidence_Runs.csv",
+      "sha256": "f95bfd7d23b0257b2bec267064b9f661004531337be989f0728b0ae0e86a4153",
+      "final_run_id": "82bc9a4720e04a50ae942128305eb90d",
+      "candidate_run_id": "74e8884c230349f3ad29021db15f54a2",
+      "threshold_run_id": "4d0a1f65fd754905bb85a4459886cb10"
+    }
+  },
+  "source_evidence_manifest_file": "source_experiment_evidence_manifest.json",
+  "source_evidence_verification_file": "source_experiment_evidence_verification.json",
+  "selection_rule": "Held-out PR-AUC is the predefined cross-model primary metric; recall/FNR, balanced accuracy, F2, calibration and fairness remain mandatory documented trade-offs.",
+  "quality_gate": {
+    "metric": "test_auc_roc",
+    "minimum": 0.75
+  }
+}

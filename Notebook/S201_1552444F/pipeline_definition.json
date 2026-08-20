@@ -1,0 +1,527 @@
+{
+  "Version": "2020-12-01",
+  "Metadata": {},
+  "Parameters": [
+    {
+      "Name": "InputDataUrl",
+      "Type": "String",
+      "DefaultValue": "s3://nyp-26s1-iti113/iti113/team02/data/diabetes/cleaned/diabetes_binary_cleaned_dataset.csv"
+    },
+    {
+      "Name": "ExpectedProfileSHA256",
+      "Type": "String",
+      "DefaultValue": "6244bec277fe3cefce56d46c583a4c5eb73f179ef64c8a1b18557fd0200105c5"
+    },
+    {
+      "Name": "ExpectedTrainSplitSHA256",
+      "Type": "String",
+      "DefaultValue": "93531a7b366471a63d29fd970abad6c5d04a2f933f9ffb2aa38dce1c7b286d65"
+    },
+    {
+      "Name": "ExpectedTestSplitSHA256",
+      "Type": "String",
+      "DefaultValue": "12de3cf4074e8656a059c938acbe27143794910116dda3dc217a101698a368c1"
+    },
+    {
+      "Name": "MinTestRocAuc",
+      "Type": "Float",
+      "DefaultValue": 0.75
+    }
+  ],
+  "PipelineExperimentConfig": {
+    "ExperimentName": {
+      "Get": "Execution.PipelineName"
+    },
+    "TrialName": {
+      "Get": "Execution.PipelineExecutionId"
+    }
+  },
+  "MlflowConfig": null,
+  "Steps": [
+    {
+      "Name": "team02-preprocess-data",
+      "Type": "Processing",
+      "Arguments": {
+        "ProcessingResources": {
+          "ClusterConfig": {
+            "InstanceType": "ml.m5.large",
+            "InstanceCount": 1,
+            "VolumeSizeInGB": 30
+          }
+        },
+        "AppSpecification": {
+          "ImageUri": "121021644041.dkr.ecr.ap-southeast-1.amazonaws.com/sagemaker-scikit-learn:1.2-1-cpu-py3",
+          "ContainerArguments": [
+            "--random-state",
+            "42",
+            "--test-size",
+            "0.2",
+            "--expected-profile-sha256",
+            {
+              "Get": "Parameters.ExpectedProfileSHA256"
+            },
+            "--expected-train-sha256",
+            {
+              "Get": "Parameters.ExpectedTrainSplitSHA256"
+            },
+            "--expected-test-sha256",
+            {
+              "Get": "Parameters.ExpectedTestSplitSHA256"
+            },
+            "--expected-rows",
+            "253680"
+          ],
+          "ContainerEntrypoint": [
+            "python3",
+            "/opt/ml/processing/input/code/preprocess.py"
+          ]
+        },
+        "RoleArn": "arn:aws:iam::044528205969:role/SageMakerExecutionRole-ITI113-Team02",
+        "ProcessingInputs": [
+          {
+            "InputName": "cleaned-data",
+            "S3Input": {
+              "S3Uri": {
+                "Get": "Parameters.InputDataUrl"
+              },
+              "LocalPath": "/opt/ml/processing/input",
+              "S3DataType": "S3Prefix",
+              "S3InputMode": "File",
+              "S3DataDistributionType": "FullyReplicated",
+              "S3CompressionType": "None"
+            }
+          },
+          {
+            "InputName": "code",
+            "S3Input": {
+              "S3Uri": "s3://nyp-26s1-iti113/iti113/team02/mlops/diabetes-risk/sdk-artifacts/team02-diabetes-risk/code/8eb9262c3745032f0a75480abc0d0982c91f77e46407b952370dc9b3b93d90e8/preprocess.py",
+              "LocalPath": "/opt/ml/processing/input/code",
+              "S3DataType": "S3Prefix",
+              "S3InputMode": "File",
+              "S3DataDistributionType": "FullyReplicated",
+              "S3CompressionType": "None"
+            }
+          }
+        ],
+        "ProcessingOutputConfig": {
+          "Outputs": [
+            {
+              "OutputName": "train",
+              "S3Output": {
+                "S3Uri": {
+                  "Std:Join": {
+                    "On": "/",
+                    "Values": [
+                      {
+                        "Std:Join": {
+                          "On": "/",
+                          "Values": [
+                            "s3://nyp-26s1-iti113/iti113/team02/mlops/diabetes-risk/pipeline-runs",
+                            {
+                              "Get": "Execution.PipelineExecutionId"
+                            }
+                          ]
+                        }
+                      },
+                      "processed",
+                      "train"
+                    ]
+                  }
+                },
+                "LocalPath": "/opt/ml/processing/output/train",
+                "S3UploadMode": "EndOfJob"
+              }
+            },
+            {
+              "OutputName": "test",
+              "S3Output": {
+                "S3Uri": {
+                  "Std:Join": {
+                    "On": "/",
+                    "Values": [
+                      {
+                        "Std:Join": {
+                          "On": "/",
+                          "Values": [
+                            "s3://nyp-26s1-iti113/iti113/team02/mlops/diabetes-risk/pipeline-runs",
+                            {
+                              "Get": "Execution.PipelineExecutionId"
+                            }
+                          ]
+                        }
+                      },
+                      "processed",
+                      "test"
+                    ]
+                  }
+                },
+                "LocalPath": "/opt/ml/processing/output/test",
+                "S3UploadMode": "EndOfJob"
+              }
+            },
+            {
+              "OutputName": "metadata",
+              "S3Output": {
+                "S3Uri": {
+                  "Std:Join": {
+                    "On": "/",
+                    "Values": [
+                      {
+                        "Std:Join": {
+                          "On": "/",
+                          "Values": [
+                            "s3://nyp-26s1-iti113/iti113/team02/mlops/diabetes-risk/pipeline-runs",
+                            {
+                              "Get": "Execution.PipelineExecutionId"
+                            }
+                          ]
+                        }
+                      },
+                      "metadata"
+                    ]
+                  }
+                },
+                "LocalPath": "/opt/ml/processing/output/metadata",
+                "S3UploadMode": "EndOfJob"
+              }
+            }
+          ]
+        },
+        "Tags": [
+          {
+            "Key": "Course",
+            "Value": "ITI113"
+          },
+          {
+            "Key": "Semester",
+            "Value": "26S1"
+          },
+          {
+            "Key": "TeamId",
+            "Value": "team02"
+          },
+          {
+            "Key": "StudentId",
+            "Value": "s201"
+          },
+          {
+            "Key": "ProjectName",
+            "Value": "diabetes-risk"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "team02-train-model",
+      "Type": "Training",
+      "Arguments": {
+        "AlgorithmSpecification": {
+          "TrainingInputMode": "File",
+          "TrainingImage": "121021644041.dkr.ecr.ap-southeast-1.amazonaws.com/sagemaker-scikit-learn:1.2-1-cpu-py3",
+          "ContainerEntrypoint": [
+            "/bin/bash"
+          ],
+          "ContainerArguments": [
+            "-c",
+            "chmod +x /opt/ml/input/data/sm_drivers/sm_train.sh && /opt/ml/input/data/sm_drivers/sm_train.sh"
+          ]
+        },
+        "HyperParameters": {
+          "model-type": "XGBoost",
+          "decision-threshold": "0.5",
+          "model-params-json": "{\"n_estimators\":450,\"max_depth\":4,\"learning_rate\":0.03,\"min_child_weight\":5.0,\"subsample\":0.8,\"colsample_bytree\":0.8,\"reg_alpha\":0.1,\"reg_lambda\":10.0,\"gamma\":0.05,\"scale_pos_weight\":3.0,\"objective\":\"binary:logistic\",\"eval_metric\":\"aucpr\",\"tree_method\":\"hist\",\"n_jobs\":-1,\"random_state\":42}",
+          "preprocessing-config-json": "{\"config_version\":\"brfss-binary-v1-stratified-80-20-rs42\",\"source_target_column\":\"Diabetes_binary\",\"pipeline_target_column\":\"target\",\"feature_columns\":[\"HighBP\",\"HighChol\",\"CholCheck\",\"BMI\",\"Smoker\",\"Stroke\",\"HeartDiseaseorAttack\",\"PhysActivity\",\"Fruits\",\"Veggies\",\"HvyAlcoholConsump\",\"AnyHealthcare\",\"NoDocbcCost\",\"GenHlth\",\"MentHlth\",\"PhysHlth\",\"DiffWalk\",\"Sex\",\"Age\",\"Education\",\"Income\"],\"feature_count\":21,\"data_profile\":\"full\",\"profile_fraction\":1.0,\"split_strategy\":\"stratified_train_test_split\",\"test_size\":0.2,\"random_state\":42,\"modelling_validation\":\"Stratified 5-Fold CV on training only\",\"resampling\":\"none\",\"xgboost_class_imbalance_control\":\"scale_pos_weight\"}",
+          "team-id": "team02",
+          "data-version": "brfss2015-diabetes-binary-6244bec277fe",
+          "dataset-sha256": "6244bec277fe3cefce56d46c583a4c5eb73f179ef64c8a1b18557fd0200105c5",
+          "approved-run-id": "057bb58d81564c0db9a628b224eab8f9",
+          "source-candidate-run-id": "02807641d2814f48a084c7c451414917",
+          "source-refinement-run-id": "e89987fd9aec4a11a1108c8afaf6561b",
+          "source-threshold-run-id": "a1a47bcc23d844539d92f3a3ed8fec1e",
+          "config-version": "2026-08-22-cross-model-champion-v5",
+          "experiment-xgboost-version": "",
+          "pipeline-xgboost-version": "2.1.4"
+        },
+        "InputDataConfig": [
+          {
+            "ChannelName": "train",
+            "DataSource": {
+              "S3DataSource": {
+                "S3DataType": "S3Prefix",
+                "S3Uri": {
+                  "Get": "Steps.team02-preprocess-data.ProcessingOutputConfig.Outputs['train'].S3Output.S3Uri"
+                },
+                "S3DataDistributionType": "FullyReplicated"
+              }
+            },
+            "ContentType": "text/csv",
+            "InputMode": "File"
+          },
+          {
+            "ChannelName": "code",
+            "DataSource": {
+              "S3DataSource": {
+                "S3DataType": "S3Prefix",
+                "S3Uri": "s3://nyp-26s1-iti113/iti113/team02/mlops/diabetes-risk/sdk-artifacts/team02-diabetes-train-model/team02-diabetes-train-model-20260822054904/input/code",
+                "S3DataDistributionType": "FullyReplicated"
+              }
+            },
+            "InputMode": "File"
+          },
+          {
+            "ChannelName": "sm_drivers",
+            "DataSource": {
+              "S3DataSource": {
+                "S3DataType": "S3Prefix",
+                "S3Uri": "s3://nyp-26s1-iti113/iti113/team02/mlops/diabetes-risk/sdk-artifacts/team02-diabetes-train-model/team02-diabetes-train-model-20260822054904/input/sm_drivers",
+                "S3DataDistributionType": "FullyReplicated"
+              }
+            },
+            "InputMode": "File"
+          }
+        ],
+        "ResourceConfig": {
+          "InstanceType": "ml.m5.large",
+          "InstanceCount": 1,
+          "VolumeSizeInGB": 30
+        },
+        "RoleArn": "arn:aws:iam::044528205969:role/SageMakerExecutionRole-ITI113-Team02",
+        "StoppingCondition": {
+          "MaxRuntimeInSeconds": 3600
+        },
+        "OutputDataConfig": {
+          "S3OutputPath": {
+            "Std:Join": {
+              "On": "/",
+              "Values": [
+                {
+                  "Std:Join": {
+                    "On": "/",
+                    "Values": [
+                      "s3://nyp-26s1-iti113/iti113/team02/mlops/diabetes-risk/pipeline-runs",
+                      {
+                        "Get": "Execution.PipelineExecutionId"
+                      }
+                    ]
+                  }
+                },
+                "training"
+              ]
+            }
+          },
+          "CompressionType": "GZIP"
+        }
+      }
+    },
+    {
+      "Name": "team02-evaluate-model",
+      "Type": "Processing",
+      "Arguments": {
+        "ProcessingResources": {
+          "ClusterConfig": {
+            "InstanceType": "ml.m5.large",
+            "InstanceCount": 1,
+            "VolumeSizeInGB": 30
+          }
+        },
+        "AppSpecification": {
+          "ImageUri": "121021644041.dkr.ecr.ap-southeast-1.amazonaws.com/sagemaker-scikit-learn:1.2-1-cpu-py3",
+          "ContainerEntrypoint": [
+            "/bin/bash",
+            "/opt/ml/processing/input/entrypoint/runproc.sh"
+          ]
+        },
+        "RoleArn": "arn:aws:iam::044528205969:role/SageMakerExecutionRole-ITI113-Team02",
+        "ProcessingInputs": [
+          {
+            "InputName": "model",
+            "S3Input": {
+              "S3Uri": {
+                "Get": "Steps.team02-train-model.ModelArtifacts.S3ModelArtifacts"
+              },
+              "LocalPath": "/opt/ml/processing/model",
+              "S3DataType": "S3Prefix",
+              "S3InputMode": "File",
+              "S3DataDistributionType": "FullyReplicated",
+              "S3CompressionType": "None"
+            }
+          },
+          {
+            "InputName": "test",
+            "S3Input": {
+              "S3Uri": {
+                "Get": "Steps.team02-preprocess-data.ProcessingOutputConfig.Outputs['test'].S3Output.S3Uri"
+              },
+              "LocalPath": "/opt/ml/processing/test",
+              "S3DataType": "S3Prefix",
+              "S3InputMode": "File",
+              "S3DataDistributionType": "FullyReplicated",
+              "S3CompressionType": "None"
+            }
+          },
+          {
+            "InputName": "code",
+            "S3Input": {
+              "S3Uri": "s3://nyp-26s1-iti113/iti113/team02/mlops/diabetes-risk/sdk-artifacts/team02-diabetes-evaluate-2026-08-22-05-49-06-613/source/",
+              "LocalPath": "/opt/ml/processing/input/code/",
+              "S3DataType": "S3Prefix",
+              "S3InputMode": "File",
+              "S3DataDistributionType": "FullyReplicated",
+              "S3CompressionType": "None"
+            }
+          },
+          {
+            "InputName": "entrypoint",
+            "S3Input": {
+              "S3Uri": "s3://nyp-26s1-iti113/iti113/team02/mlops/diabetes-risk/sdk-artifacts/team02-diabetes-risk/code/2f8ebe42c1cde7b2ec2de511eb7200c5a7765cb4da49571f20f3fa35f4e99503/runproc.sh",
+              "LocalPath": "/opt/ml/processing/input/entrypoint",
+              "S3DataType": "S3Prefix",
+              "S3InputMode": "File",
+              "S3DataDistributionType": "FullyReplicated",
+              "S3CompressionType": "None"
+            }
+          }
+        ],
+        "ProcessingOutputConfig": {
+          "Outputs": [
+            {
+              "OutputName": "evaluation",
+              "S3Output": {
+                "S3Uri": {
+                  "Std:Join": {
+                    "On": "/",
+                    "Values": [
+                      {
+                        "Std:Join": {
+                          "On": "/",
+                          "Values": [
+                            "s3://nyp-26s1-iti113/iti113/team02/mlops/diabetes-risk/pipeline-runs",
+                            {
+                              "Get": "Execution.PipelineExecutionId"
+                            }
+                          ]
+                        }
+                      },
+                      "evaluation"
+                    ]
+                  }
+                },
+                "LocalPath": "/opt/ml/processing/evaluation",
+                "S3UploadMode": "EndOfJob"
+              }
+            }
+          ]
+        },
+        "Tags": [
+          {
+            "Key": "Course",
+            "Value": "ITI113"
+          },
+          {
+            "Key": "Semester",
+            "Value": "26S1"
+          },
+          {
+            "Key": "TeamId",
+            "Value": "team02"
+          },
+          {
+            "Key": "StudentId",
+            "Value": "s201"
+          },
+          {
+            "Key": "ProjectName",
+            "Value": "diabetes-risk"
+          }
+        ]
+      },
+      "PropertyFiles": [
+        {
+          "PropertyFileName": "EvaluationReport",
+          "OutputName": "evaluation",
+          "FilePath": "evaluation.json"
+        }
+      ]
+    },
+    {
+      "Name": "team02-quality-gate",
+      "Type": "Condition",
+      "Arguments": {
+        "Conditions": [
+          {
+            "Type": "GreaterThanOrEqualTo",
+            "LeftValue": {
+              "Std:JsonGet": {
+                "PropertyFile": {
+                  "Get": "Steps.team02-evaluate-model.PropertyFiles.EvaluationReport"
+                },
+                "Path": "test.roc_auc"
+              }
+            },
+            "RightValue": {
+              "Get": "Parameters.MinTestRocAuc"
+            }
+          }
+        ],
+        "IfSteps": [
+          {
+            "Name": "team02-register-model",
+            "Type": "RegisterModel",
+            "Arguments": {
+              "ModelPackageGroupName": "team02-diabetes-risk",
+              "ModelPackageDescription": "Team02 Explainable Diabetes Risk Screening academic prototype; final XGBoost champion, subject to independent evaluation and human approval.",
+              "CustomerMetadataProperties": {
+                "team_id": "team02",
+                "project_name": "diabetes-risk",
+                "lifecycle_stage": "final_champion",
+                "model_type": "XGBoost",
+                "config_version": "2026-08-22-cross-model-champion-v5",
+                "preprocessing_config_version": "brfss-binary-v1-stratified-80-20-rs42",
+                "data_version": "brfss2015-diabetes-binary-6244bec277fe",
+                "profile_sha256": "6244bec277fe3cefce56d46c583a4c5eb73f179ef64c8a1b18557fd0200105c5",
+                "train_split_sha256": "93531a7b366471a63d29fd970abad6c5d04a2f933f9ffb2aa38dce1c7b286d65",
+                "test_split_sha256": "12de3cf4074e8656a059c938acbe27143794910116dda3dc217a101698a368c1",
+                "decision_threshold": "0.5",
+                "source_candidate_run_id": "02807641d2814f48a084c7c451414917",
+                "source_refinement_run_id": "e89987fd9aec4a11a1108c8afaf6561b",
+                "source_threshold_tuning_run_id": "a1a47bcc23d844539d92f3a3ed8fec1e",
+                "source_final_run_id": "057bb58d81564c0db9a628b224eab8f9",
+                "comparison_lr_final_run_id": "82bc9a4720e04a50ae942128305eb90d",
+                "model_handoff_run_id": "43aba870c78a4b26ab068ad2454d3bf2",
+                "human_oversight": "human_over_the_loop"
+              },
+              "InferenceSpecification": {
+                "Containers": [
+                  {
+                    "Image": "121021644041.dkr.ecr.ap-southeast-1.amazonaws.com/sagemaker-scikit-learn:1.2-1-cpu-py3",
+                    "Environment": {
+                      "SAGEMAKER_PROGRAM": "inference.py",
+                      "SAGEMAKER_SUBMIT_DIRECTORY": "/opt/ml/model/code",
+                      "SAGEMAKER_CONTAINER_LOG_LEVEL": "20",
+                      "SAGEMAKER_REGION": "ap-southeast-1"
+                    },
+                    "ModelDataUrl": {
+                      "Get": "Steps.team02-train-model.ModelArtifacts.S3ModelArtifacts"
+                    }
+                  }
+                ],
+                "SupportedContentTypes": [
+                  "application/json"
+                ],
+                "SupportedResponseMIMETypes": [
+                  "application/json"
+                ],
+                "SupportedRealtimeInferenceInstanceTypes": [
+                  "ml.m5.large"
+                ]
+              },
+              "ModelApprovalStatus": "PendingManualApproval",
+              "SkipModelValidation": "None"
+            }
+          }
+        ],
+        "ElseSteps": []
+      }
+    }
+  ]
+}

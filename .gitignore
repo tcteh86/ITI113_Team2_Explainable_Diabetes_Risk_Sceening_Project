@@ -1,0 +1,14 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
+.venv/
+.env
+.env.*
+!.env.example
+.streamlit/secrets.toml
+team02_*evidence*.json
+.idea/
+.vscode/
+.DS_Store
